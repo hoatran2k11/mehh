@@ -1,0 +1,35 @@
+name: RDP via ZeroTier
+
+on:
+  workflow_dispatch:
+
+jobs:
+  rdp:
+    runs-on: windows-2022
+    timeout-minutes: 360
+
+    steps:
+    - name: Create RDP user
+      run: |
+        net user deni "Chi11/9/2001" /add
+        net localgroup administrators deni /add
+        reg add "HKLM\System\CurrentControlSet\Control\Terminal Server" /v fDenyTSConnections /t REG_DWORD /d 0 /f
+        Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+
+    - name: Install ZeroTier
+      run: |
+        choco install zerotier-one -y
+
+    - name: Join ZeroTier Network
+      run: |
+        & "C:\Program Files (x86)\ZeroTier\One\zerotier-cli.bat" join 52b337794f34ef1d
+
+    - name: Show ZeroTier IP
+      run: |
+        Start-Sleep -Seconds 15
+        ipconfig
+
+    - name: Keep Alive
+      run: |
+        Write-Output "RDP ready - ZeroTier connected"
+        Start-Sleep -Seconds 21600
